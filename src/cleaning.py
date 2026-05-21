@@ -243,10 +243,22 @@ def create_quality_report(
 
 
 def save_clean_data(clean_data: dict[str, pd.DataFrame]) -> None:
-    """Save clean datasets as Parquet files."""
+    """
+    Save clean datasets as Spark-compatible Parquet files.
+
+    PySpark may fail to read Parquet files written with nanosecond timestamps.
+    The options below coerce timestamp columns to milliseconds, which is safer
+    for Spark local execution.
+    """
     for name, df in clean_data.items():
         output_path = PROCESSED_DIR / f"{name}_clean.parquet"
-        df.to_parquet(output_path, index=False)
+        df.to_parquet(
+            output_path,
+            index=False,
+            engine="pyarrow",
+            coerce_timestamps="ms",
+            allow_truncated_timestamps=True,
+        )
 
 
 def main() -> None:
