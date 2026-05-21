@@ -26,14 +26,24 @@ REPORTS_DIR = Path("reports")
 
 
 def create_spark_session() -> SparkSession:
-    """Create a local Spark session."""
-    return (
+    """
+    Create a local Spark session.
+
+    The configuration below keeps the local Windows execution cleaner by
+    reducing unnecessary Spark console output.
+    """
+    spark = (
         SparkSession.builder
         .appName("AI Fraud Risk Feature Engineering")
         .master("local[*]")
         .config("spark.sql.shuffle.partitions", "8")
+        .config("spark.ui.showConsoleProgress", "false")
+        .config("spark.sql.debug.maxToStringFields", "200")
         .getOrCreate()
     )
+
+    spark.sparkContext.setLogLevel("ERROR")
+    return spark
 
 
 def read_clean_data(spark: SparkSession) -> dict:
