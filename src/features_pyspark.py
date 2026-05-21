@@ -15,6 +15,7 @@ Output:
 """
 
 from pathlib import Path
+import shutil
 
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
@@ -399,13 +400,33 @@ def main() -> None:
         features = select_model_ready_columns(df)
 
         output_path = PROCESSED_DIR / "features_model_ready.parquet"
-        features.write.mode("overwrite").parquet(str(output_path))
+
+        # Local Windows-safe output strategy:
+        # Spark performs the feature engineering, but pandas/pyarrow writes the
+        # final compact feature table to avoid Hadoop/winutils write issues.
+        if output_path.exists():
+            if output_path.is_dir():
+                shutil.rmtree(output_path)
+            else:
+                output_path.unlink()
+
+        row_count = features.count()
+        column_count = len(features.columns)
+
+        features_pd = features.toPandas()
+        features_pd.to_parquet(
+            output_path,
+            index=False,
+            engine="pyarrow",
+            coerce_timestamps="ms",
+            allow_truncated_timestamps=True,
+        )
 
         write_feature_dictionary()
 
         print("PySpark feature engineering completed successfully.")
-        print(f"Rows: {features.count():,}")
-        print(f"Columns: {len(features.columns):,}")
+        print(f"Rows: {row_count:,}")
+        print(f"Columns: {column_count:,}")
         print(f"Output: {output_path.resolve()}")
         print(f"Feature dictionary: {(REPORTS_DIR / 'feature_dictionary.md').resolve()}")
 
