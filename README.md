@@ -6,7 +6,13 @@
 
 
 
-This project implements a local-first, Databricks-ready AI pipeline for fraud and risk detection using synthetic financial transaction data.
+## Brief Executive Summary
+
+This project demonstrates an end-to-end fraud risk detection pipeline using synthetic financial data.
+
+It covers data generation, cleaning, PySpark feature engineering, supervised fraud classification, unsupervised anomaly detection, final risk scoring, local GenAI-style explanations, monitoring, SQL validation, and unit tests.
+
+The project is local-first, reproducible, Databricks-ready, and does not require paid cloud services, private banking data, or paid GenAI providers.
 
 
 
